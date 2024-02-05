@@ -1,0 +1,19 @@
+#modelo de archivo
+#Costo
+param C:   						"Villa Nueva" "San Lucas" "Zona 17" "Zona 2":= 
+    "San Cristobal" 				7.57		7.89		14.18		10.72
+   	"Carretera al Salvador" 		14.05		20.76		8.05		10.82
+    "Zona 1" 						14.99		16.23		5.93		2.19
+    "Zona 16" 						16.24		20.88		4.41		7.41;
+#Demanda
+param D: 								"Villa Nueva" "San Lucas" "Zona 17" "Zona 2":=
+		"Bikini Electrico"					32				45			50		12
+		"Bikini Menta"						15				36			11		8
+		"Bikini TieDye"						11				5			6		30;
+	
+
+#Capacidad
+param J: 					"San Cristobal" "Carretera al Salvador" "Zona 1" "Zona 16"	:=
+		"Bikini Electrico"			50				50					50		50
+		"Bikini Menta"				50				50					50		50
+		"Bikini TieDye"				50				50					50		50;

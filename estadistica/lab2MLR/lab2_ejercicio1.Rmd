@@ -1,0 +1,306 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(ISLR)
+```
+
+
+```{r}
+
+df<-read.csv("Admission_Predict.csv")
+```
+#1)
+```{r}
+df
+colnames(df)
+```
+```{r}
+summary(df)
+```
+
+
+```{r}
+head(df)
+nrow(df)
+cols(
+  `Serial No.` = col_double(),
+  `GRE Score` = col_double(),
+  `TOEFL Score` = col_double(),
+  `University Rating` = col_double(),
+  SOP = col_double(),
+  LOR = col_double(),
+  CGPA = col_double(),
+  Research = col_double(),
+  `Chance of Admit` = col_double()
+)
+```
+
+
+#2)
+
+
+```{r}
+p <- ggplot(df, aes(x=GRE.Score)) + 
+  geom_density()
+p+ geom_vline(aes(xintercept=mean(GRE.Score)),
+            color="blue", linetype="dashed", size=1)
+```
+```{r}
+p <- ggplot(df, aes(x=TOEFL.Score)) + 
+  geom_density()
+p+ geom_vline(aes(xintercept=mean(TOEFL.Score)),
+            color="blue", linetype="dashed", size=1)
+```
+```{r}
+p <- ggplot(df, aes(x=CGPA)) + 
+  geom_density()
+p+ geom_vline(aes(xintercept=mean(CGPA)),
+            color="blue", linetype="dashed", size=1)
+```
+#3)
+```{r}
+ggplot(df,aes(x=GRE.Score,y=TOEFL.Score,color='Rank'))+geom_point()
+print("The correlation coefficient between GRE & TOEFL score is") 
+cor(df$GRE.Score,df$TOEFL.Score)
+```
+
+```{r}
+ggplot(df,aes(x=GRE.Score,y=CGPA,color='Rank'))+geom_point()
+print("The correlation coefficient between GRE & CGPA  is") 
+cor(df$GRE.Score,df$CGPA)
+```
+
+
+
+#4)
+```{r}
+#Segun un analisis estadistico podemos observar que mientras mas GRE Sore, CGPA y TOEFL score han aplicado a las universidades de mayor prestigio.
+```
+
+#5)
+```{r}
+#[1] "Serial.No."        "GRE.Score"         "TOEFL.Score"      
+#[4] "University.Rating" "SOP"               "LOR"              
+#[7] "CGPA"              "Research"          "Chance.of.Admit" 
+plot(df$GRE.Score, df$Chance.of.Admit, main="Scatterplot Example",
+   xlab="Gre Score ", ylab="Chance of Admit ", pch=19) 
+```
+```{r}
+plot(df$TOEFL.Score, df$Chance.of.Admit, main="Scatterplot Example",
+   xlab="TOEFL.Score ", ylab="Chance of Admit ", pch=19) 
+```
+
+```{r}
+plot(df$SOP, df$Chance.of.Admit, main="Scatterplot Example",
+   xlab="SOP ", ylab="Chance of Admit ", pch=19) 
+```
+```{r}
+plot(df$LOR, df$Chance.of.Admit, main="Scatterplot Example",
+   xlab="LOR ", ylab="Chance of Admit ", pch=19) 
+```
+```{r}
+plot(df$CGPA, df$Chance.of.Admit, main="Scatterplot Example",
+   xlab="CGPA ", ylab="Chance of Admit ", pch=19) 
+```
+
+```{r}
+df %>%
+  ggplot(aes(x=TOEFL.Score, y=Chance.of.Admit))+
+  geom_point(aes(col=University.Rating))+
+  geom_smooth(method="lm")+
+  theme_minimal()
+```
+#6)
+#Regresion logistica para tefl vs chance of admit
+
+```{r}
+log_reg<- df%>%
+  glm(formula = Chance.of.Admit ~ TOEFL.Score,
+      family="binomial")
+
+```
+#Regresion lineal simple, modelos
+```{r}
+df$toefl_cgpa <- (df$TOEFL.Score + df$CGPA)
+df$toefl_gre <- (df$TOEFL.Score + df$GRE.Score)
+df$gre_cgpa <- (df$GRE.Score+ df$CGPA)
+df$cgpa_toefl_gre <- (df$GRE.Score+ df$CGPA+df$TOEFL.Score)
+
+```
+
+
+```{r}
+lm1<- df %>%
+  lm(formula = Chance.of.Admit ~ TOEFL.Score)
+lm2<- df %>%
+  lm(formula = Chance.of.Admit ~ CGPA)
+lm3<- df %>%
+  lm(formula = Chance.of.Admit ~ GRE.Score)
+lm4<- df %>%
+  lm(formula = Chance.of.Admit ~ toefl_cgpa)
+lm5<- df %>%
+  lm(formula = Chance.of.Admit ~ toefl_gre)
+
+lm6<- df %>%
+  lm(formula = Chance.of.Admit ~ gre_cgpa)
+
+lm7<- df %>%
+  lm(formula = Chance.of.Admit ~ cgpa_toefl_gre)
+
+```
+```{r}
+summary(lm4)
+```
+
+#prueba T en valor -16 no es significante
+#valor p 
+#R^2 es aceptable
+```{r}
+library(caret)
+```
+#arreglo de variables aleatrosio 1 - max row
+```{r}
+index <- createDataPartition(df$Chance.of.Admit, p = 0.7, list=FALSE)
+index
+dataTrain <-dataset[index,]
+dataTest <- dataset[-index,]
+
+```
+
+
+
+#Valores nuevos rmse
+```{r}
+rmse <-sqrt(mean((df$Chance.of.Admit)^2))
+rmse
+```
+
+#Para el primer modelo toeflscore vs chance
+```{r}
+xaxis<- seq(min(df$TOEFL.Score), max(df$TOEFL.Score), b=1)
+prediccion<- predict(object = lm1, newdata = data.frame(TOEFL.Score = xaxis))
+plot(x=df$TOEFL.Score, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="red")
+```
+
+#Para el primer modelo cgpa vs chance
+```{r}
+xaxis<- seq(min(df$CGPA), max(df$CGPA), b=1)
+prediccion<- predict(object = lm2, newdata = data.frame(CGPA = xaxis))
+plot(x=df$CGPA, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="green")
+```
+
+#Para el primer modelo GRE.score vs chance
+```{r}
+xaxis<- seq(min(df$GRE.Score), max(df$GRE.Score), b=1)
+prediccion<- predict(object = lm3, newdata = data.frame(GRE.Score = xaxis))
+plot(x=df$GRE.Score, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="pink")
+
+```
+#Para el primer modelo TOEFL + CGPA vs chance
+```{r}
+
+xaxis<- seq(min(df$toefl_cgpa), max(df$toefl_cgpa), b=1)
+
+
+
+prediccion<- predict(object = lm4, newdata = data.frame(toefl_cgpa = xaxis))
+
+
+plot(x=df$toefl_cgpa, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="black")
+```
+#lm6
+```{r}
+
+xaxis<- seq(min(df$toefl_gre), max(df$toefl_gre), b=1)
+
+
+
+prediccion<- predict(object = lm5, newdata = data.frame(toefl_gre = xaxis))
+
+
+plot(x=df$toefl_gre, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="black")
+```
+#lm6
+
+```{r}
+xaxis<- seq(min(df$gre_cgpa), max(df$gre_cgpa), b=1)
+
+
+
+prediccion<- predict(object = lm6, newdata = data.frame(gre_cgpa = xaxis))
+
+
+plot(x=df$gre_cgpa, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="black")
+
+```
+
+#lm7
+```{r}
+
+xaxis<- seq(min(df$cgpa_toefl_gre), max(df$cgpa_toefl_gre), b=1)
+
+
+
+prediccion<- predict(object = lm7, newdata = data.frame(cgpa_toefl_gre = xaxis))
+
+
+plot(x=df$cgpa_toefl_gre, y=df$Chance.of.Admit, pch=16, col=blues9)
+points(xaxis, prediccion, type='l', lwd=5
+       , col="black")
+
+```
+
+#8) Realice un an ??alisis sobre los resultados de cada modelo y ord ??anelos de mejor a peor
+#rmse <-sqrt(mean((df$Chance.of.Admit)^2))
+#valor p 
+#R^2 es aceptable
+#Residuals estimado y esperado
+#Coeficientes -> Intercept B0 y B1
+#Prueba de significancia, que tanta informacion aporta ese parametro al modelo
+#El erro estandard std.error una normalizacion de los valores que puedo producir utilizando una muestra del tamano n, que tan desviado esta el valor 
+#T Value -> Distribucion T identificar donde esta ubicado el valor critico de la prueba de hipotesis T, prueba de significancia, que tanta informacion produce el modelo, estadisticamente repercute en la estructura del modelo? Si >|2.5| es estadisticamente significativo
+#El valor p mientras mas pequeno mejor
+#R^2 la bundad de la ajuste, que tanto se ajusta la recta a los datos, mientras mas cercano a 1 es mejor. No significa que el modelo sea bueno. 0.85< r^2>0.55
+#r = correlacion
+#Prueba   estadistico > 5 me puede servir para encontrar informacion que no se mientras mas grande sea el modelo sirve mas.
+
+```{r}
+summary(lm1)
+summary(lm2)
+summary(lm3)
+summary(lm4)
+summary(lm5)
+summary(lm6)
+summary(lm7)
+```
+
+#Top 7 DESC by F-static
+#lm2 1279
+#lm7 919.6
+#lm5 882.7
+#lm6 773.1
+#lm4 761
+#lm3 720.6
+#lm1 667.9
+
+
+
+
+

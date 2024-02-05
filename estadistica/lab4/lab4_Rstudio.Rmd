@@ -1,0 +1,126 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Laboratorio 4
+####Data
+
+```{r}
+dataset <- read.csv("demandaBicis.csv",encoding = "UTF-8")
+dataset
+library(dplyr)
+library(ggplot2)
+```
+
+####Obtenemos el mes con mayor de manda que es septiembre
+
+```{r}
+mes<- dataset%>%
+  select(mnth,cnt)%>%
+  group_by(mnth)%>%
+  summarise(media = mean(cnt))%>%
+  top_n(1,media)%>%
+  arrange(desc(media))
+
+mes
+  
+```
+
+####La hora que tiene mas ventas que son las 17 horas.
+
+```{r}
+df.rangohora<-dataset%>%
+  select(hr,cnt)%>%
+  group_by(hr)%>%
+  summarise(med=mean(cnt))%>%
+  arrange(desc(med))
+
+df.rangohora
+```
+
+
+####Temporada mas alta
+```{r}
+df.season<- dataset%>%
+  select(season,cnt)%>%
+  group_by(season)%>%
+  summarise(media = mean(cnt))%>%
+  top_n(10,media)%>%
+  arrange(desc(media))
+
+df.season
+```
+
+
+####La temperatura donde baja la demanda
+```{r}
+df.temperatura<- dataset%>%
+  select(temp,cnt)%>%
+  group_by(temp)%>%
+  summarise(media = mean(cnt))%>%
+  arrange(desc(media))
+  
+  
+
+vector=min(df.temperatura$media)
+
+
+
+df.temperatura
+```
+
+
+#### CUando disminuye la demanda segun la humedad
+
+```{r}
+df.humedad<- dataset%>%
+  select(hum,cnt)%>%
+  group_by(hum)%>%
+  summarise(media = mean(cnt))%>%
+  arrange(desc(media))
+
+
+
+
+df.humedad
+```
+######A medida que la humedad aumenta la demanda de bicicletas baja
+
+
+
+####6. ¿Que condiciones serian ideales para nuestra demanda?
+
+
+######a una temperatura de 0.98 y con humedad de 0.20
+####7. Realice una gráfica de la densidad de temperatura.
+
+```{r}
+dataset%>%
+ggplot(aes(x = temp, y = ..density..)) + 
+  geom_density(color = 'red', size = 1, fill = 'skyblue')
+```
+
+
+####8. Con una gráfica explique en que temporada hubieron mas rentas de bicicletas.
+
+```{r}
+lm1 = lm(data = dataset,formula = cnt~season)
+lm1
+```
+
+
+
+```{r}
+dataset %>%
+  ggplot(aes(x=season, y = cnt))+
+  geom_point(col= "blue")+
+  theme_classic()+
+  xlab("Temporada")+
+  ylab("Renta")+
+  geom_abline(intercept = lm1$coefficients[1],
+              slope = lm1$coefficients[2],
+              col ="red",lwd=1)
+```
+
+
+

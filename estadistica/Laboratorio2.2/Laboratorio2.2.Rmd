@@ -1,0 +1,340 @@
+---
+output:
+  html_notebook: default
+  html_document: default
+---
+
+#Nehemias Lopez 16005834
+#Carlos Montiel 15000552
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(caret)
+```
+
+
+
+
+```{r}
+dataset<-read.csv("Mall_Customers.csv")
+```
+
+```{r}
+colnames(dataset)
+```
+
+
+```{r}
+dataset
+```
+
+```{r}
+#CustomerID -> numero identifico del cliente
+#Gender -> Sexo del cliente
+#Age -> Edad del cliente
+#Annual income -> Ingreso anual en miles de dolares
+#Spending score -> Puntiacion de gasto
+```
+#Realice una grÂ´afica de barras o histograma para cada una de las variables Age, Anual Income, Gender, Spending Score.
+
+```{r}
+hist(x = dataset$Age, main = "Histograma de Edad", 
+xlab = "Edad", ylab = "Frecuencia")
+
+
+```
+
+```{r}
+
+hist(x = dataset$Annual.Income..k.., main = "Histograma de Edad", 
+xlab = "anualincome", ylab = "Frecuencia")
+
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+datos<-data.frame(dataset, genderbinary=ifelse(dataset$Gender == "Male" , 1, 0))
+```
+
+
+
+
+```{r}
+datos
+```
+
+
+```{r}
+hist(x = datos$genderbinary, main = "Histograma de Sexo", 
+xlab = "Sexo", ylab = "Frecuencia")
+
+```
+
+
+```{r}
+hist(x = datos$Spending.Score..1.100., main = "Histograma de Sexo", 
+xlab = "Score de gasto", ylab = "Frecuencia")
+```
+
+
+#Realice un anÂ´alisis de correlaciÂ´on entre las variables Age e Income, luego de un comentario al respecto.
+```{r}
+library(corrplot)
+library(MASS)
+datasetFiltred <- data.frame(datos$genderbinary, datos$Age, datos$Annual.Income..k.., datos$Spending.Score..1.100.)
+
+corrplot(cor(datasetFiltred), method = "number", type="upper")
+cor(x= datasetFiltred$datos.Age, y=datasetFiltred$datos.Annual.Income..k..)
+```
+
+```{r}
+
+```
+
+```{r}
+datasetFiltred %>%
+  ggplot(aes(x=datos.Age, y=datos.Annual.Income..k..)) + geom_point(col="blue")+theme_classic()
+
+```
+
+
+#La correlaciÃ³n entre las variables Age e Income no tiene una fuerte relacion entre ambas.
+#Las variables Age ~ Annual income, no tienen una relaciÃ³n, intuitivamente, se podrÃ?a decir que mientras mÃ¡s edad 
+#tiene una persona, mÃ¡s dinero debe de ganar, pero no es ese el caso.
+
+
+
+```{r}
+#Realice un anÂ´alisis de correlaciÂ´on entre las variables Age y Spending Score, luego Income y Spending Score, luego de un comentario al respecto.
+
+corrplot(cor(datasetFiltred), method = "number", type="upper")
+cor(x= datasetFiltred$datos.Age, y=datasetFiltred$datos.Spending.Score..1.100.)
+
+```
+
+```{r}
+datasetFiltred %>%
+  ggplot(aes(x=datos.Age, y=datos.Spending.Score..1.100.)) + geom_point(col="blue")+theme_classic()
+
+```
+
+
+
+```{r}
+datasetFiltred %>%
+  ggplot(aes(x=datos.Annual.Income..k.., y=datos.Spending.Score..1.100.)) + geom_point(col="green")+theme_classic()
+
+```
+
+```{r}
+cor(x=datasetFiltred$datos.Age, y=datasetFiltred$datos.Spending.Score..1.100.)
+cor(x=datasetFiltred$datos.Annual.Income..k.., y=datasetFiltred$datos.Spending.Score..1.100.)
+```
+
+
+```{r}
+lm2<-datasetFiltred %>%
+  lm(formula = datasetFiltred$datos.Age ~ datos.Spending.Score..1.100.)
+summary(lm2)
+
+```
+
+
+
+```{r}
+lm3<-datasetFiltred %>%
+  lm(formula = datos.Spending.Score..1.100. ~ datos.Annual.Income..k..)
+summary(lm3)
+```
+
+```{r}
+#Realice un anÂ´alisis de impacto con boxplots entre las variables Gender y las variables Age, Income y Spending Score, luego de un comentario al respecto
+
+datasetFiltred%>%
+  ggplot(aes(x=as.factor(datos.genderbinary ), y=datos.Age))+
+  geom_boxplot(col="green", size=1)
+```
+
+```{r}
+datasetFiltred%>%
+  ggplot(aes(x=as.factor(datos.genderbinary ), y=datos.Annual.Income..k..))+
+  geom_boxplot(col="green", size=1)
+```
+
+
+```{r}
+datasetFiltred%>%
+  ggplot(aes(x=as.factor(datos.genderbinary ), y=datos.Spending.Score..1.100.))+
+  geom_boxplot(col="green", size=1)
+```
+
+
+```{r}
+#Me indican que las mujeres tiene un valor de media de 35 aÃ±os y los hombres tienen un valor de media de 38 aÃ±os
+#Con boxplot podemos observar el minimo, maximo, la mediana y la media
+#El boxplot puede determinar el comportamiento de los datos, por ejemplo(La persona con mayor edad del dataset es hombre.)
+#Se pueden determinar ciertos numeros con el boxplot para una mayor interpretacion de la data
+```
+
+
+```{r}
+
+datosClasificados <- data.frame(datos, PCustomer=ifelse(datos$Spending.Score..1.100.>=50, 1, 0))
+```
+
+
+```{r}
+datosClasificados
+```
+
+
+```{r}
+dataset<-data.frame(dataset, PCustomer=ifelse(dataset$Spending.Score..1.100. > 50, 1, 0))
+
+
+```
+
+```{r}
+dataset$Spending.Score..1.100. <- NULL
+dataset
+```
+
+#Modelos de clasificacion, LDA, SVM 
+
+```{r}
+#datatest y datatrain
+
+trainIndex <-createDataPartition(dataset$PCustomer, p=0.7, list = F)
+dataTrain<-dataset[trainIndex,]
+dataTest<-dataset[-trainIndex,]
+
+```
+
+
+
+
+```{r}
+lda_fit<-lda(formula = PCustomer ~ Age + Annual.Income..k.., data=dataTrain)
+lda_fit
+
+
+predsLDA<-predict(object = lda_fit, newdata =dataTest)
+
+
+```
+
+
+
+
+```{r}
+library(e1071)
+confusionMatrix(as.factor(predsLDA$class), as.factor(dataTest$PCustomer), positive = "1")
+
+```
+
+```{r}
+predsLDA$class
+```
+```{r}
+dataProve <- dataTest
+dataProve$class <- predsLDA$class
+```
+
+```{r}
+dataProve
+```
+
+
+```{r}
+dataProve %>%
+  filter(PCustomer == class)
+```
+
+#Modelo ANN
+```{r}
+dataYes <- dataset %>%
+  filter(PCustomer == 1)
+
+
+dataNo <-dataset %>%
+  filter(PCustomer == 0)
+```
+
+
+```{r}
+
+library(neuralnet)
+```
+```{r}
+dataTrain
+```
+
+```{r}
+
+redNeural<-neuralnet(formula =  PCustomer ~ Age + Annual.Income..k.., data=dataTrain, hidden = 6, err.fct="ce", linear.output = FALSE)
+
+plot(redNeural)
+```
+```{r}
+dataTest
+```
+
+```{r}
+predsANN<-compute(redNeural, dataTest)
+dataProve$ANN <- ifelse(predsANN$net.result[,1] >= 0.5, 1, 0)
+
+dataProve
+
+
+
+
+
+
+```
+```{r}
+confusionMatrix(as.factor(dataProve$ANN), as.factor(dataTest$PCustomer), positive = "1")
+```
+#Regresion binomial
+```{r}
+
+log_reg4 <- dataTrain %>%
+  glm(formula = PCustomer ~ Age + Annual.Income..k.., family = "binomial")
+
+```
+
+
+```{r}
+predicciones <- predict(object = log_reg4, newdata = dataTest, type = "response")
+predicciones <- ifelse(predicciones >= 0.5, 1 , 0)
+dataProve$binomial <- predicciones
+```
+
+```{r}
+dataProve
+```
+```{r}
+confusionMatrix(as.factor(dataProve$binomial), as.factor(dataTest$PCustomer), positive = "1")
+```
+
+```{r}
+svm_fit <- svm(formula = PCustomer ~ Age + Annual.Income..k.., data = dataTrain, kernel = "radial", gamma=5)
+
+
+predSVM <- predict(object = svm_fit, newdata= dataTest)
+predSVM <- ifelse(predSVM >= 0.5, 1 , 0)
+dataProve$SVM <- predicciones
+```
+```{r}
+dataProve
+```
+
+```{r}
+confusionMatrix(as.factor(dataProve$SVM), as.factor(dataTest$PCustomer), positive = "1")
+```
+

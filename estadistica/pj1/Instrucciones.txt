@@ -1,0 +1,21 @@
+Instrucciones generales.
+
+Ingresar al video:
+https://youtu.be/0u14GHVADD8
+
+Correr el script:
+	1. Abrir Anaconda Navigator
+	2. Launch Spyder
+	3. Verificar que el dataset esté cargado en el ambiente
+	4. verificar que las librerias estén descargadas correctament
+	5. Si al correr da un error revisar los logs, posiblemente
+		no se ha descargado una libreria
+
+	6.Después de correr el script se puede probar con
+		cualquier texto en ingles para clasificarlo
+		por ejemplo puedes escribir en la consola lo 
+		siguiente:
+
+		txt_sample = 'Sexy for tonight'
+		pred = clf.predict(count_vect.transform([txt_sample]))
+		print(mapping_index[pred][0])  

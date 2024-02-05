@@ -1,0 +1,285 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+library(caret)
+library(ISLR)
+
+
+```
+```{r}
+Default
+```
+#modelo de regresion logistica
+```{r}
+dataset <- Default
+```
+
+```{r}
+
+dataset$defaultCode<-ifelse(dataset$default == "No", 0, 1)
+logit_reg<-dataset %>%
+  glm(formula = defaultCode ~ balance,
+      family="binomial")
+```
+
+
+
+```{r}
+summary(logit_reg)
+```
+
+#LDA funciona con bayes y probabilidad condicionada
+#en base a los valores de la observacion se clasifica
+#LDA normalmente distribuida
+#campana de gauss y estimacion de probabilidad
+#si fueran categorias de ropa en SQL, podemos hacer obtener la data de cada categoria y las distribuciones de cada uno
+
+```{r}
+#medias
+medias <- dataset%>%
+  filter(balance != 0) %>%
+  group_by(default)%>%
+  summarise(media=mean(balance))
+medias
+
+```
+
+```{r}
+mean(medias$media)
+```
+
+```{r}
+
+dataset %>%
+  filter(balance !=0) %>%
+  ggplot(aes(x=balance, fill=default, y=..density..))+
+  geom_density(alpha=0.5)+
+  geom_vline(aes(xintercept=mean(medias$media)))+
+  theme_minimal()
+
+```
+
+#LDA se asume distribucion normal mean(yes)> mean(no)
+#se puede tener una probabilidad que pertenezca a ambas clases
+```{r}
+
+dataset %>%
+  filter(income !=0) %>%
+  ggplot(aes(x=income, fill=default, y=..density..))+
+  geom_density(alpha=0.5)+
+  theme_minimal()
+
+
+
+```
+
+#INCOME NO ES SEPARABLE, NO APORTA NADA ESTADISTICAMENTE HABLANDO
+
+
+#SVM
+```{r}
+temp<-dataset %>%
+  filter(balance !=0 )
+
+plot(temp$balance, temp$income, col=temp$default, pch=16)
+
+```
+
+```{r}
+dataset %>%
+  filter(balance !=0 )%>%
+  ggplot(aes(x=balance, y=income, col=default))+
+  geom_point(alpha=0.5)+
+theme_minimal()
+```
+
+
+```{r}
+trainIndex<-createDataPartition(dataset$default, p=0.3, list = F)
+dataTrain<-dataset[trainIndex,]
+dataTest<-dataset[-trainIndex,]
+nrow(dataTrain)
+nrow(dataTest)
+```
+
+#Modelo de regresion logistica
+
+```{r}
+logit_reg<-glm(formula = defaultCode ~ balance + income, data=dataTrain )
+summary(logit_reg)
+
+```
+
+
+
+#performance
+#deberian de sacar contra lo que saaca
+#aqui clasifico >=
+```{r}
+predsLogReg<-predict(object = logit_reg, newdata= dataTest, type="response")
+predsLogReg<-ifelse(predsLogReg >= 0.5, "Yes", "No")
+
+
+```
+
+#Matriz de confusion en caret
+#factores para que sean comparables
+```{r}
+#limpiar data primero
+sum(is.na(dataTest$default))
+```
+
+
+```{r}
+library(e1071)
+confusionMatrix(as.factor(predsLogReg), as.factor(dataTest$default))
+
+```
+
+#MODELO LDA
+```{r}
+library(MASS)
+
+
+```
+
+```{r}
+lda_fit<-lda(formula = default ~ balance + income, data=dataTrain)
+lda_fit
+```
+
+```{r}
+predsLDA<-predict(object = lda_fit, newdata =dataTest)
+```
+
+```{r}
+library(e1071)
+confusionMatrix(as.factor(predsLDA$class), as.factor(dataTest$default), positive = "Yes")
+```
+#Balanceo de data
+#clasificacion -> Objetivos y bases
+```{r}
+dataYes <- dataset %>%
+  filter(default == "Yes")
+dataNoRatio<-nrow(dataYes)*2
+
+dataNo <-dataset %>%
+  filter(default == "No")
+noDataSelector <- sample(1:nrow(dataNo), dataNoRatio, replace = F)
+dataNo<-dataNo[noDataSelector, ]
+
+#append de datas
+
+newDataTrain<-rbind(dataYes, dataNo)
+
+#shuffle
+shuffler<-sample(1:nrow(newDataTrain), nrow(newDataTrain), replace = F)
+newDataTrain<- newDataTrain[shuffler, ]
+newDataTrain
+
+```
+
+#modelos con data mejorada
+```{r}
+
+trainIndex <-createDataPartition(newDataTrain$default, p=0.7, list = F)
+dataTrain<-dataset[trainIndex,]
+dataTest<-dataset[-trainIndex,]
+logit_reg<-glm(formula = defaultCode ~ balance + income, data=dataTrain)
+predsLogReg<-predict(object = logit_reg, newdata= dataTest, type="response")
+predsLogReg<-ifelse(predsLogReg >= 0.5, "Yes", "No")
+
+confusionMatrix(as.factor(predsLogReg), as.factor(dataTest$default), positive = "Yes")
+
+```
+#MODELO LDA RED Y TODO LA COSA
+```{r}
+
+
+library(MASS)
+lda_fit<-lda(formula = default ~ balance + income, data=dataTrain)
+lda_fit
+
+
+predsLDA<-predict(object = lda_fit, newdata =dataTest)
+
+library(e1071)
+confusionMatrix(as.factor(predsLDA$class), as.factor(dataTest$default), positive = "Yes")
+
+```
+
+```{r}
+
+newDataTrain %>%
+  filter(balance !=0 )%>%
+  ggplot(aes(x=balance, y=income, col=default))+
+  geom_point(alpha=0.5)+
+theme_minimal()
+
+```
+```{r}
+
+maxIncome<- max(newDataTrain$income)
+maxBalance<- max(newDataTrain$balance)
+
+balanceAxis<-seq(0, maxBalance, by=1)
+incomeAxis<-seq(0, maxIncome, by=1)
+
+#como el svm hace la asignacion
+```
+
+
+```{r}
+svm_fit<-svm(formula = default ~ balance + income,
+             data=dataTrain,
+             kernel = "radial",
+             gamma = 7 )
+svm_fit
+```
+
+```{r}
+testGrid<- expand.grid(balance = balanceAxis, income=incomeAxis)
+
+
+
+```
+
+
+```{r}
+predsSMV<-predict(object=svm_fit, newdata=dataTest)
+confusionMatrix(as.factor(predsSMV), as.factor(dataTest$default), positive = "Yes")
+```
+#Redes neurales
+
+```{r}
+
+library(neuralnet)
+
+```
+
+```{r}
+redNeural<-neuralnet(formula = default ~ balance + income, data=dataTrain, hidden = 5, err.fct="ce", linear.output = FALSE)
+
+plot(redNeural)
+```
+
+```{r}
+predsANN<- compute(redNeural, dataTest)
+
+
+
+```
+```{r}
+varX<-ifelse(predsANN$net.result[, 1] >= predsANN$net.result[,2], "No", "Yes")
+
+
+confusionMatrix(as.factor(varX), as.factor(dataTest$default), positive = "Yes")
+```
+

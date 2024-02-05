@@ -1,0 +1,128 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+x<-seq(1:20)
+y<-c(2.8, 2.1, 4, 4.5, 3.8, 3.2, 4.8, 5.4, 4, 3.6, 5.5, 5.8, 4.3, 3.9, 6, 6.4, NA, NA, NA, NA)
+datos<-data.frame(t=x, ventas=y)
+datos
+```
+
+```{r}
+datos %>%
+  ggplot(aes(x=t, y=ventas))+
+  geom_line(col="blue")+
+  geom_point(aes(x=t, y=ventas))+
+  theme_minimal()
+```
+#ARIMA
+```{r}
+datos<-data.frame(datos, Tendencia=MM)
+datos
+```
+
+```{r}
+arr<-datos[,2]
+MM<-rep(NA, length(arr))
+CE<-rep(NA, length(arr))
+Y.est<-rep(NA, length(arr))
+
+k<-4
+indice<-k-1
+for(i in c(1:length(arr))){
+  if(i <= (length(arr) - (k+1))){
+  bloque<-mean(arr[seq(i, i +(k+1))])
+  MM[indice]<-bloque
+  CE[indice]<-arr[indice]/bloque
+  indice<-indice+1
+  }
+}
+datos<-data.frame(datos, CE=CE)
+datos
+```
+```{r}
+datos %>%
+   ggplot(aes(x=t, y=ventas))+
+  geom_line(col="blue")+
+  geom_point(aes(x=t, y=ventas))+
+  geom_line(aes(x=t, y=Tendencia), col="red")+
+  geom_point(aes(x=t, y=Tendencia), col="red")+
+  theme_minimal()
+```
+
+#Constantee estacionaria
+#la estacionalidad en una vente de juguetes es en diciembre
+```{r}
+varY<-c()
+for(i in c(1:k)){
+  varX<-seq(i, length(arr), by=k)
+  varY<-c(varY, mean(datos[varX, 4], na.rm= TRUE))
+}
+varY <- rep(varY, k+1)
+datos <- data.frame(datos, St=varY)
+datos
+
+```
+
+
+```{r}
+
+datos %>%
+  ggplot(aes(x=t, y=St))+
+  geom_line(col="purple")+
+  geom_point(col="black")+
+  theme_minimal()
+```
+
+```{r}
+datos<-data.frame(datos, Irr=(datos[, 2]/datos[,5]))
+datos
+```
+
+```{r}
+modelo<-lm(formula = Irr ~ t, data=datos)
+summary(modelo)
+```
+```{r}
+preds <- predict(object = modelo, newdata = datos)
+preds
+```
+
+
+```{r}
+datos<-data.frame(datos, Ftrend=preds)
+datos
+```
+
+```{r}
+datos<-data.frame(datos, PrediccionFinal=datos[,7]*datos[,5])
+```
+```{r}
+datos
+```
+
+
+
+```{r}
+datos %>%
+   ggplot(aes(x=t, y=ventas))+
+  geom_line(col="blue")+
+  geom_point(aes(x=t, y=ventas))+
+  geom_line(aes(x=t, y=PrediccionFinal), col="red")+
+  geom_point(aes(x=t, y=PrediccionFinal), col="green")+
+  theme_minimal()
+```
+
+

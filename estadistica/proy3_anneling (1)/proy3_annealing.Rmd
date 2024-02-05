@@ -1,0 +1,683 @@
+---
+title: "Fase ultima Proyecto"
+output: html_notebook
+author: Carlos Montiel - 15000552
+---
+
+<p>Según el artículo enviado por el señor Miltón, en donde se explica el algoritmo simulated annealing, vamos a enfatizar ciertas reglas del algoritmo:</p>
+
+<p> 
+
+1.    First, generate a random solution
+2.    Calculate its cost using some cost function you've defined
+3.    Generate a random neighboring solution
+4.    Calculate the new solution's cost
+5.    Compare them:
+        If cnew < cold: move to the new solution
+        If cnew > cold: maybe move to the new solution
+6.    Repeat steps 3-5 above until an acceptable solution is found or you reach some         maximum number of iterations.
+
+</p>
+
+
+<p>
+Las soluciones aleatorias van a ser las partes del proyecto 1 y el proyecto 2
+con una probabilidad equitativa: 
+
+ 0<= x <0.5: Random fase 1
+ 0.5<= x <=  1: Random fase 2 -> CX, SC IVM, ITM, DM ; cx_ crossover, subtour_crossover, inversion_mutation, insertion_mutation, displacement_mutation respectivamente
+</p>
+
+<p>
+En resumen se eligira un random para calcule ciertos algoritmos que usan random y se eligira siempre la mejor opcion, con un numero finito de iteraciones
+
+</p>
+
+<p>Librerias</p>
+
+```{r}
+library(readr)
+library(tidyverse)
+library(httr)
+library(jsonlite)
+library(tidyr)
+library(gepaf)
+library(ggmap)
+```
+
+
+
+<p>Definicion Random pj1</p>
+```{r}
+
+accumulated_time <- 0
+accumulated_time_total <-0
+anterior <- 0
+vector_visited <- c()
+vector_general <- c()
+simulation_random <- function(sequence, iterations){
+
+  counter <- 0
+    
+  for(it in 0:iterations){
+    vector_visited <- append(vector_visited, 1, after = length(vector_visited))
+   accumulated_time <-  0
+    random_seq <- sample(2:13, 12)
+    actual <- 1
+    for(val in random_seq){
+      siguiente_parada <- distance_matrix[actual,][val]
+      vector_visited <- append(vector_visited, val, after = length(vector_visited))
+       accumulated_time <- accumulated_time + siguiente_parada 
+       actual <- val
+       
+       
+      
+      
+    }
+     vector_general <- vector_visited
+    if(counter == 0){
+        accumulated_time_total <- accumulated_time
+        counter <- 1
+      }
+    if(accumulated_time <= accumulated_time_total){
+      
+      vector_general <- vector_visited
+      accumulated_time_total <- accumulated_time
+      v <- c(vector_general)
+      
+     
+    }
+     else{
+      
+     }
+    vector_visited <-c()
+    
+  }
+  
+    
+
+
+ 
+  return(v)
+}
+
+#fastest_route <- simulation_random( 0, iterations=1000)
+```
+
+<p>Definicion algoritmos geneticos</p>
+
+
+
+```{r}
+cx_crossover <- function(p1, p2){
+  #find cycle
+  p1_length <- length(p1)
+  offspring <- replicate(p1_length, 0)
+  offspring <- cycle_defined_by_parents(p1,p2,0,0,0, c(), offspring) 
+ 
+ for(val in 1:p1_length){
+   if(offspring[val] == 0){
+     offspring[val] = p2[val]
+   }
+   else{
+     
+   }
+ }
+ return(offspring)
+ 
+    
+}
+```
+
+#5
+```{r}
+subtour_crossover <- function(p1,p2){
+    p1_length <- length(p1)
+  p2_length <- length(p2)
+
+    random_n <- sample(1:p1_length -1 , 1)
+
+    
+    random_n2 <- sample(1:p2_length -1 , 1)
+
+    
+    offspring <- replicate(p1_length, 0)
+    offspring2 <- replicate(p1_length, 0)
+    aux <- 0
+    for(val in random_n:p1_length){
+      aux <- aux +1
+      
+      offspring[val] = p1[val]
+    }
+
+    
+     for(index in 1:random_n){
+
+      offspring[index] = p2[index]
+      
+     }
+    
+    for(i in random_n2:p1_length){
+      aux <- aux +1
+      
+      offspring2[i] = p2[i]
+    }
+
+    
+     for(j in 1:random_n2){
+
+      offspring2[j] = p1[j]
+      
+     }
+    return(offspring2)
+
+  
+}
+```
+
+
+
+```{r}
+push <- function(x, values) (assign(as.character(substitute(x)), c(x, values), parent.frame()))
+
+# pop
+pop <- function(x) (assign(as.character(substitute(x)), x[-length(x)], parent.frame()))
+```
+
+#Mutation
+#6
+```{r}
+
+
+
+
+inversion_mutation <- function(p1, p2){
+  p1_length <- length(p1)
+  p2_length <- length(p2)
+  
+  random_sample_left <- sample(1:p1_length,1 )
+  
+  random_sample_right <- sample(random_sample_left: p1_length, 1)
+  
+  offspring <- p1
+  v <- c()
+  for(val in random_sample_left:random_sample_right){
+    push(v, offspring[val])
+  }
+  v<-rev(v)
+  
+ offspring[random_sample_left:random_sample_right] = v
+  return(offspring)
+}
+```
+
+#Insertion mutation 7
+```{r}
+insertion_mutation <- function(p1){
+  p1_length <- length(p1)
+ 
+  
+  random_sample_left <- sample(1:p1_length,1 )
+  random_sample_right <- sample(1: p1_length, 1)
+  offspring <- p1
+  new_value <- offspring[random_sample_left]
+  v <- c()
+  for(val in 1:p1_length){
+    if(val == random_sample_right){
+      push(v,offspring[random_sample_left])
+      push(v, offspring[val])
+      
+    }
+    else{
+      if(offspring[val] == offspring[random_sample_left]){
+        
+      }
+      else{
+        push(v,offspring[val])
+      }
+      
+    }
+  }
+  return(v)
+  
+  
+}
+```
+
+
+```{r}
+  require(magrittr)
+create.chunks <- function(x, elements.per.chunk){
+    # plain R version
+    # split(x, rep(seq_along(x), each = elements.per.chunk)[seq_along(x)])
+    # magrittr version - because that's what people use now
+    x %>% seq_along %>% rep(., each = elements.per.chunk) %>% extract(seq_along(x)) %>% split(x, .) 
+}
+```
+#8
+```{r}
+displacement_mutation <- function(parent, n){
+  subtour<- sample(parent,n,replace =F, prob=NULL)
+  rmv <- parent [!parent %in% subtour]
+  posrnd <- sample(c(1:length(rmv)), 1, replace = F, prob = NULL )
+  parent <- append(rmv, subtour, after=posrnd)
+  return(parent)
+  
+}
+```
+
+```{r}
+simulate_routes <- function(seq){
+
+  counter <- 0
+    
+    vector_visited <- append(vector_visited, 1, after = length(vector_visited))
+   accumulated_time <-  0
+    random_seq <- seq
+    actual <- 1
+    for(val in random_seq){
+      siguiente_parada <- distance_matrix[actual,][val]
+      vector_visited <- append(vector_visited, val, after = length(vector_visited))
+       accumulated_time <- accumulated_time + siguiente_parada 
+       actual <- val
+       
+       
+      
+      
+    }
+     vector_general <- vector_visited
+    if(counter == 0){
+        accumulated_time_total <- accumulated_time
+        counter <- 1
+      }
+    if(accumulated_time <= accumulated_time_total){
+      
+      vector_general <- vector_visited
+      accumulated_time_total <- accumulated_time
+      v <- c(vector_general)
+      
+     
+    }
+     else{
+      
+     }
+    vector_visited <-c()
+    
+  
+  
+    
+
+
+ 
+  return(accumulated_time_total)
+}
+```
+
+```{r}
+simulate_genetic <- function(iterations){
+    ox <- c()
+    pbc <- c()
+    obc <- c() 
+    cx <- c()
+    sc <- c()
+    ivm <- c()
+    itm <- c()
+    dm <- c()
+    em <- c()
+    
+    time_ox <- 0
+    time_pbc <- 0
+    time_obc <- 0 
+    time_cx <- 0
+    time_sc <- 0
+    time_ivm <- 0
+    time_itm <-0
+    time_dm <- 0
+    time_em <- 0
+    
+    final_cx <- c()
+    final_sc <- c()
+    final_ivm <- c()
+    final_itm <- c()
+    final_dm <- c()
+    final_em <- c()
+    
+    
+    
+
+    
+    sem<-0
+  for(val in 1:iterations){
+    p1 <- pull(hosp_coordinates[,1])
+    p2 <- sample(p1, length(p1))
+    
+    ox <- ox_crossover(p1,p2)
+    pbc <- position_based_crossover(p1,p2) 
+    obc <- order_based_crossover(p1,p2) 
+    cx <- cx_crossover(p1,p2)
+    sc <- subtour_crossover(p1,p2)
+    ivm <- inversion_mutation(p1,p2)
+    itm <- insertion_mutation(p1)
+    dm <- displacement_mutation(p1, 3)
+
+    cx_current <- (simulate_routes(cx))
+    sc_current <- (simulate_routes(sc))
+    ivm_current <- (simulate_routes(ivm))
+    itm_current <- (simulate_routes(itm))
+    dm_current <- (simulate_routes(dm))
+    if(sem==0){
+        time_cx <- cx_current
+        time_sc <- sc_current
+        time_ivm <- ivm_current
+        time_itm <-itm_current
+        time_dm <- dm_current
+        final_cx <- c(time_cx, cx)
+        final_sc <- c(time_sc, sc)
+        final_ivm <- c(time_ivm, ivm)
+        final_itm <- c(time_itm, itm)
+        final_dm <- c(time_dm, dm)
+        
+    }
+    else{
+      if(cx_current <= time_cx){
+         time_cx <- cx_current
+         final_cx <- c(time_cx, cx)
+
+      }
+      if(sc_current <= time_sc){
+        time_sc <- sc_current
+        final_sc <- c(time_sc, sc)
+      }
+      if(ivm_current <= time_ivm){
+        time_ivm <- ivm_current
+        final_ivm <- c(time_ivm, ivm)
+      }
+      if(itm_current <= time_itm){
+        time_itm <-itm_current
+        final_itm <- c(time_itm, itm)
+      }
+      if(dm_current <= time_dm){
+        time_dm <- dm_current
+        final_dm <- c(time_dm, dm)
+      }
+      
+    }
+    
+    
+  }
+
+    return(data.frame(final_cx, final_dm,final_sc,final_ivm, final_itm))
+
+    
+  
+}
+```
+```{r}
+
+get_faster <- function(df){
+  faster <- 0
+  faster_route <- c()
+  for(index in 1:length(df)){
+    if(index == 1){
+      faster <- df[1,1]
+      faster_route <- df[-1,1]
+      
+    }
+    else{
+      if(df[1,index]<= faster){
+        faster <- df[1,index]
+        faster_route<-df[-1,index]
+      }
+    }
+  }
+  return(faster_route)
+}
+```
+
+
+```{r}
+annealing <- function(iterations){
+  select_random_algorithm <- runif(1)
+  print(select_random_algorithm)
+  if(select_random_algorithm >= 0 & select_random_algorithm <5){
+    #logic for random
+    f <- iterations
+    fastest_route <- simulation_random( 0, f)
+    sol <- fastest_route
+  }
+  else{
+    #logic for genetic
+    s <- simulate_genetic(iterations)
+    fastest_route <- get_faster(s)
+    sol <- fastest_route
+    
+  }
+  
+  return(sol)
+}
+
+p <- annealing(1000)
+p
+```
+<p>Solucion, annealing, lo tiene cada algoritmo a la hora de calcular el optimo ver la funcion simulation_Random y simulate_genetic, estos crean segun la cantidad de iteraciones es la cantidad de puntos random usando diferentes algoritmos de busqueda del mas optimo, en este caso el que tiene menos tiempo, ya se encarga de utilziar annealing, que fue lo que se uso en el proyecto pasado inconsientemente, no se sabia del nombre de este algoritmo y se realizo sin saberlo.</p>
+
+
+
+<p>Ahora vamos a intentar realizar n iteraciones en el algoritmo anterior haciendo otra vez annealing, entonces, annealing se veria de esta forma:</p>
+<p> Algoritmo 1, annealing para encontrar la mejor solucion genetic o random, si es genetic crea n iteraciones para encontrar la mejor solucion y si es random genera otras n iteraciones para encontrar la mejor solucion, este proceso se repite N veces.</p>
+
+<p>Alteramos el output para que nos de tiempos...</p>
+
+```{r}
+get_faster2 <- function(df){
+  faster <- 0
+  faster_route <- c()
+  for(index in 1:length(df)){
+    if(index == 1){
+      faster <- df[1,1]
+      faster_route <- df[-1,1]
+      
+    }
+    else{
+      if(df[1,index]<= faster){
+        faster <- df[1,index]
+        faster_route<-df[-1,index]
+      }
+    }
+  }
+  return(faster)
+}
+```
+
+```{r}
+
+accumulated_time <- 0
+accumulated_time_total <-0
+anterior <- 0
+vector_visited <- c()
+vector_general <- c()
+simulation_random2 <- function(sequence, iterations){
+
+  counter <- 0
+    
+  for(it in 0:iterations){
+    vector_visited <- append(vector_visited, 1, after = length(vector_visited))
+   accumulated_time <-  0
+    random_seq <- sample(2:13, 12)
+    actual <- 1
+    for(val in random_seq){
+      siguiente_parada <- distance_matrix[actual,][val]
+      vector_visited <- append(vector_visited, val, after = length(vector_visited))
+       accumulated_time <- accumulated_time + siguiente_parada 
+       actual <- val
+       
+       
+      
+      
+    }
+     vector_general <- vector_visited
+    if(counter == 0){
+        accumulated_time_total <- accumulated_time
+        counter <- 1
+      }
+    if(accumulated_time <= accumulated_time_total){
+      
+      vector_general <- vector_visited
+      accumulated_time_total <- accumulated_time
+      v <- c(vector_general)
+      
+     
+    }
+     else{
+      
+     }
+    vector_visited <-c()
+    
+  }
+  
+    
+
+
+ 
+  return(accumulated_time_total)
+}
+
+```
+
+```{r}
+annealing2 <- function(iterations){
+  time <- 0
+  aux <- 0
+  arr <- 0
+  sol_arr <- 0
+
+  for(i in 1:iterations){
+
+    select_random_algorithm <- runif(1)
+  if(select_random_algorithm >= 0 & select_random_algorithm <5){
+    #logic for random
+    f <- iterations
+    fastest_route <- simulation_random2( 0, f)
+    arr <- simulation_random(0,f)
+    sol <- fastest_route
+  }
+  else{
+    #logic for genetic
+    s <- simulate_genetic2(iterations)
+    fastest_route <- get_faster2(s)
+    arr <- get_faster(s)
+    sol <- fastest_route
+    
+  }
+  if(aux == 0){
+    aux <- 1
+    time <- sol
+
+  
+  }
+  else{
+      if(sol <= time){
+        time <- sol
+        sol_arr <- arr
+
+      }
+    }
+  
+    
+  }
+  r <- c(time, sol_arr)
+  
+  return(r)
+  
+}
+
+
+```
+
+<p>realizamos annealing recursivo en tres agoritmos diferentes, uno como central y dos como seleccion todos incluyendo annealing</p>
+```{r}
+q <- annealing2(1000)
+q
+```
+<p>Graficamos</p>
+```{r}
+gmaps_destination <- function(origen, destino){
+  url <- "https://maps.googleapis.com/maps/api/directions/json?origin=<ORIGIN>&destination=<DESTINATION>&key=<API_KEY>"
+  api_key <- 'AIzaSyCQU_0EyC5dd0ZS58Lc_F5tSv9ulCSSqvY'
+  url <- gsub('<ORIGIN>', replacement = origen, x=url)
+  url <- gsub('<DESTINATION>', replacement = destino, x=url)
+  url <- gsub('<API_KEY>', replacement = api_key, x=url)
+  response <- GET(url)
+  resp_json <- fromJSON(content(response, as = "text"))
+  ruta <- resp_json$routes$overview_polyline$points
+  ruta <- decodePolyline(ruta)
+  ruta
+}
+```
+```{r}
+fastest_route <- q[2:length(q)]
+```
+
+```{r}
+actual_location <-  hosp_coordinates[1,][2]
+next_location <- hosp_coordinates[1,][2]
+v <-c()
+df <- hosp_coordinates[1,][2]
+pd <- data.frame("lat", "lon")
+ruta1 <- ""
+x <- ""
+aux <- 0
+for(val in fastest_route){
+  next_location <-hosp_coordinates[val,][2]
+
+   ruta<- gmaps_destination(origen= actual_location, destino = next_location)
+   actual_location <- next_location
+   if(aux == 0){
+     ruta1 <- ruta
+     aux <- 1
+     x <- ruta
+   }
+   else{
+     ruta1 <- rbind(ruta1,ruta)
+   }
+   
+}
+ruta1
+```
+```{r}
+api_key <- 'AIzaSyCQU_0EyC5dd0ZS58Lc_F5tSv9ulCSSqvY'
+register_google(key=api_key)
+```
+
+<p>Time: 7308  -> Route:   1    9    7   10    8   12    5    4    3    6   13   11    2 iterations: 1000</p>
+
+```{r}
+ggmap(get_googlemap(center=c(lon=mean(ruta1$lon),lat=mean(ruta1$lat)), 
+      zoom=13,
+      maptype="roadmap") ) + geom_point(aes(x=lon,y=lat), data=ruta1,color="red")
+```
+
+<p>Conclusiones</p>
+<p>Sin duda este es el mejor algoritmo para decidir quien es el mejor ya que tiene bastante procesamiento, se puede elegir el optimo para este proyecto, considero tambien decir que mi algoritmo en las rutas piensa de forma lineal, esto significa que la ruta que el tiene como output por ejemplo A B C D, el sugiere que primero se vaya a A luego a B luego a C y de ultimo a D, este es el mejor pero el mas costoso.</p>
+```{r}
+library(png)
+library(grid)
+
+```
+<p>Comparacion de resultados:</p>
+<p>Algoritmo 1 Random </p>
+<p>Time: 9217 ; iterations : 1000    </p>
+<p> Route: 1   11   13    6    4    5   12    3    2   10    8    7    9</p>
+
+
+![Altfewfew](C:\Users\cmont\OneDrive\Documents\maestria\simulacion I\pj1_random.PNG)
+
+
+
+<p>Algoritmo 2 Genetic </p>
+<p>Time: 9136     ; iterations : 1000    </p>
+<p> Route: 1    2    3    4    5    6    7    8    9   10    4    6   10</p>
+
+![Altfewfew](C:\Users\cmont\OneDrive\Documents\maestria\simulacion I\pj2_genetic.PNG)
+
+

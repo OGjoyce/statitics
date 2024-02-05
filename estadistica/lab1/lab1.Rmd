@@ -1,0 +1,81 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+```
+
+```{r}
+dataset<-read.csv("primary_results.csv")
+
+colnames(dataset)
+```
+```{r}
+dataset
+```
+
+
+```{r}
+#1 y 2 ) ¿Cuantos candidatos estaban en las primarias?
+dataset %>%
+  filter(dataset$candidate !='No Preference')%>%
+  distinct(dataset$candidate)
+  
+#Existen 15 representantes a candidates, sin embargo existe uno que es el sin preferencia o un voto nulo.
+```
+```{r}
+#3. ¿Qu´e partido obtuvo la mayor cantidad de votos en Florida?
+dataset %>%
+  group_by(candidate)%>%
+  filter(state == 'Florida' | state_abbreviation == 'FL')
+  
+  
+```
+
+```{r}
+#la mayor cantidad de fue un empate con 67 de 6 candidatos, los demas no fueron elegidos en florida
+
+
+
+```
+
+
+```{r}
+dataset %>%
+  filter(state == 'Colorado' | state_abbreviation == 'CL')%>%
+  group_by(county)%>%
+  summarise(total_votes = sum(votes))%>%
+  arrange(desc(total_votes))%>%
+  top_n(10, total_votes)%>%
+  ggplot(aes(x=county, y=total_votes))+
+    geom_boxplot(col="green", size=1)
+  
+```
+
+```{r}
+
+dataset %>%
+  filter(state == 'California' | state_abbreviation == 'CA')%>%
+  group_by(county)%>%
+  summarise(total_votes = sum(votes))%>%
+  arrange(desc(total_votes))%>%
+  top_n(1, total_votes)
+
+```
+```{r}
+dataset %>%
+  filter(candidate == 'Donald Trump' | candidate == 'Hillary Clinton')%>%
+  group_by(candidate)%>%
+  summarise(total = sum(votes))%>%
+  ggplot(aes(y=total))+ geom_bar()
+  
+```
+
+```{r}
+
+```
+

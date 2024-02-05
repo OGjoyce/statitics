@@ -1,0 +1,239 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+
+mtcars
+
+```
+
+```{r}
+#modelo de una variable
+
+mtcars_data <- mtcars %>%
+  select(disp, mpg)
+mtcars_data
+```
+
+```{r}
+plot(mtcars_data, pch=16, col="blue")
+```
+```{r}
+summary(mtcars_data$disp)
+
+
+```
+
+```{r}
+#rango de trabajo para hacer modelo
+xaxis<- seq(70, 475, by=1)
+```
+
+```{r}
+lm_1<-lm(mpg ~ disp, data=mtcars_data)
+summary(lm_l)
+```
+
+```{r}
+predicciones <- predict(object= lm_1, newdata = data.frame(disp=xaxis))
+plot(mtcars_data, pch=16, col="blue")
+points(xaxis, predicciones, type ="l", lwd="2", col="black")
+```
+
+
+```{r}
+lm_2<- lm(mpg ~ poly(disp, 2), data=mtcars_data)
+summary(lm_2)
+```
+
+```{r}
+
+
+plot(mtcars_data, pch=16, col="blue")
+points(xaxis, predict(object= lm_1, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="black")
+points(xaxis, predict(object= lm_2, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="red")
+
+```
+
+
+```{r}
+
+lm_5<-lm(mpg ~ poly(disp, 5), data=mtcars_data)
+summary(lm_5)
+
+```
+
+```{r}
+plot(mtcars_data, pch=16, col="blue")
+points(xaxis, predict(object= lm_1, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="black")
+points(xaxis, predict(object= lm_2, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="red")
+points(xaxis, predict(object= lm_5, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="yellow")
+```
+
+
+```{r}
+lm_12<-lm(mpg ~ poly(disp, 12), data=mtcars_data)
+summary(lm_12)
+```
+
+
+```{r}
+
+plot(mtcars_data, pch=16, col="blue")
+points(xaxis, predict(object= lm_1, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="black")
+points(xaxis, predict(object= lm_2, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="red")
+points(xaxis, predict(object= lm_5, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="yellow")
+points(xaxis, predict(object= lm_12, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="darkgreen")
+
+```
+
+
+```{r}
+lm_15<-lm(mpg ~ poly(disp, 15), data=mtcars_data)
+summary(lm_15)
+
+```
+```{r}
+plot(mtcars_data, pch=16, col="blue")
+points(xaxis, predict(object= lm_1, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="black")
+points(xaxis, predict(object= lm_2, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="red")
+points(xaxis, predict(object= lm_5, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="yellow")
+points(xaxis, predict(object= lm_12, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="darkgreen")
+points(xaxis, predict(object= lm_15, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="pink")
+```
+
+
+```{r}
+#BIAS - Variance tradeoff
+  
+```
+
+```{r}
+lm_19<-lm(mpg ~ poly(disp, 19), data=mtcars_data)
+summary(lm_19)
+```
+```{r}
+plot(mtcars_data, pch=16, col="blue")
+points(xaxis, predict(object= lm_1, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="black")
+points(xaxis, predict(object= lm_2, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="red")
+points(xaxis, predict(object= lm_5, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="yellow")
+points(xaxis, predict(object= lm_12, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="darkgreen")
+points(xaxis, predict(object= lm_15, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="pink")
+points(xaxis, predict(object= lm_19, newdata = data.frame(disp=xaxis)), type ="l", lwd="2", col="black")
+```
+
+```{r}
+
+
+library(caret)
+trainIndex<- createDataPartition(mtcars_data$disp, p=0.7, list=F)
+dataTrain<- mtcars_data[trainIndex, ]
+dataTest <-mtcars_data[-trainIndex,]
+
+```
+```{r}
+lm_1<-lm(mpg ~ disp, data=dataTrain)
+lm_2<-lm(mpg ~ poly(disp, 2), data=dataTrain)
+lm_3<-lm(mpg ~ poly(disp, 5), data=dataTrain)
+lm_12<-lm(mpg ~ poly(disp, 12), data=dataTrain)
+lm_15<-lm(mpg ~ poly(disp, 15), data=dataTrain)
+
+```
+
+
+```{r}
+
+error_specification<-c(
+  mean(lm_1$residuals^2),
+  mean(lm_2$residuals^2),
+  mean(lm_3$residuals^2),
+  mean(lm_5$residuals^2),
+  mean(lm_12$residuals^2),
+  mean(lm_15$residuals^2)
+)
+
+```
+```{r}
+
+plot(c(1,2,3,5,12,15), error_specification, col="blue", type="b", lwd=2)
+
+```
+```{r}
+#error de validacion
+
+eV1<-mean(dataTest$disp - predict(object = lm_1, newdata = dataTest)^2)
+eV2<-mean(dataTest$disp - predict(object = lm_2, newdata = dataTest)^2)
+eV3<-mean(dataTest$disp - predict(object = lm_3, newdata = dataTest)^2)
+eV5<-mean(dataTest$disp - predict(object = lm_5, newdata = dataTest)^2)
+eV12<-mean(dataTest$disp - predict(object = lm_12, newdata = dataTest)^2)
+eV15<-mean(dataTest$disp - predict(object = lm_15, newdata = dataTest)^2)
+
+error_validacion <- c(eV1, eV2, eV3, eV5, eV12, eV15)
+
+plot(c(1,2,3,5,12,15), error_validacion, col="red", type="b", lwd=2)
+
+```
+
+
+
+```{r}
+plot(c(1,2,3,5,12,15), error_specification, col="blue", type="b", lwd=2,
+     xlab="Grado del Modelo",
+     ylab="Error",
+     ylim=c(0,20))
+points(c(1,2,3,5,12,15), error_validacion, col="red", type="b", lwd=2)
+```
+
+
+#k-Folds
+
+```{r}
+#modelo simple de kfolds
+
+library(caret)
+
+
+
+```
+```{r}
+customControl<-trainControl(method="repeatedcv",
+                            number=10,
+                            repeats=5,
+                            verboseIter= T)
+```
+
+```{r}
+
+lm<-train(mpg ~ hp, 
+          data = mtcars,
+          method="lm",
+          trControl=customControl)
+
+
+```
+#stepwise regression
+```{r}
+dataset <- read.csv("Advertising.csv")
+null_model <- lm(formula =  Sales ~ 1, data=dataset)
+
+full_model <- lm(formula = Sales ~., dataset)
+
+forward_selection<-step(
+  object = null_model,
+  scope = list(lower=null_model, upper=full_model),
+  direction="forward"
+)
+```
+
+```{r}
+backward_selection<-step(
+  object = full_model,
+  scope = list(lower=null_model, upper=full_model),
+  direction="backward"
+)
+backward_selection
+```
+

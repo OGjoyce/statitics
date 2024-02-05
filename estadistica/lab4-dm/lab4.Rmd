@@ -1,0 +1,443 @@
+---
+title: "R Notebook"
+output: html_notebook
+author: Carlos Montiel 15000552
+---
+#1
+
+```{r}
+ox_crossover <- function(p1, p2){
+  p1_length <- length(p1)
+  p2_length <- length(p2)
+  parent_random <- sample(1:2, 1)
+  
+  
+    random_substr <- sample(1:p1_length, 1 )
+    
+    substr <- sample(random_substr:p1_length, 1)
+    
+    substr_2 <- sample(random_substr:substr, p1,1)
+    
+    offspring_1 <- c()
+    for(val in 1:p1_length){
+      if(val == random_substr){p
+        
+
+        offspring_1 <- append(offspring_1, p1[val] , after=length(offspring_1))
+      }
+      
+      if(val < random_substr){
+        offspring_1 <- append(offspring_1, 0 , after=length(offspring_1))
+      }
+      if( val > random_substr && val <substr_2){
+
+        offspring_1 <- append(offspring_1, p1[val] , after=length(offspring_1))
+      }
+      if(val == substr_2){
+        offspring_1 <- append(offspring_1, p1[val] , after=length(offspring_1))
+      }
+      
+      
+      if(val > substr_2){
+        offspring_1 <- append(offspring_1, 0 , after=length(offspring_1))
+      }
+      
+      
+      
+    }
+
+    aux <- 0
+    for(val in p2){
+      matched <- match(val, offspring_1)
+      if( is.na(matched)){
+        offspring_1[aux] <- val
+        aux <- aux+1
+      }
+      else{
+        
+      }
+    }
+    return(offspring_1)
+    
+
+  
+  
+}
+```
+<p> Toma el padre 1 genera el random substring desde el padre 1, genera el offspring a medias luego comienza con el p2 </p>
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+p2<- c(5,7,4,9,1,3,6,2,8)
+ox <- ox_crossover(p1,p2)    
+ox
+```
+#2
+```{r}
+
+
+position_based_crossover<- function(p1, p2){
+  p1_length <- length(p1)
+  p2_length <- length(p2)
+  n <- sample(1:p1_length, 1 )
+  
+  offspring <- replicate(p1_length, 0)
+ 
+  for( val in 1 :n){
+    random <-  sample(1:p1_length, 1 )
+    
+    offspring[random] <- p1[random]
+    
+  }
+  aux <- 0
+    for(val in p2){
+      matched <- match(val, offspring)
+      if( is.na(matched)){
+        offspring[aux] <- val
+        aux <- aux+1
+      }
+      else{
+        
+      }
+    }
+  return(offspring)
+  
+}
+```
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+p2<- c(5,7,4,9,1,3,6,2,8)
+pc <- position_based_crossover(p1,p2)    
+pc
+```
+#3
+
+```{r}
+order_based_crossover <- function(p1,p2){
+  p1_length <- length(p1)
+  p2_length <- length(p2)
+  n <- sample(1:p1_length, 1 )
+  
+  offspring <- replicate(p1_length, 0)
+ 
+  for( val in 1 :n){
+    random <-  sample(1:p1_length, 1 )
+    
+    offspring[random] <- p1[random]
+    
+  }
+    aux <- 0
+    for(val in p2){
+      matched <- match(val, offspring)
+      if( is.na(matched)){
+        offspring[aux] <- val
+        aux <- aux+1
+      }
+      else{
+        
+      }
+    }
+      aux <- 0
+    for(val in p2){
+      matched <- match(val, offspring)
+      if( is.na(matched)){
+        
+      }
+      else{
+        offspring[aux] <- val
+        aux <- aux+1
+        
+      }
+    }
+
+  return(offspring)
+  
+}
+```
+
+```{r}
+
+p1<- c(1,2,3,4,5,6,7,8,9)
+p2<- c(5,7,4,9,1,3,6,2,8)
+resukt <- order_based_crossover(p1,p2)
+resukt
+```
+
+#4
+
+
+
+```{r}
+
+
+
+cycle_defined_by_parents <- function(p1,p2,aux, first_occurrence, current_occurrence, cycle, offspring){
+  if(aux == 0){
+    first_occurrence <- p1[1]
+    cycle <- append(cycle, p1[1] , after=length(cycle))
+    current_occurrence <- p2[1]
+    aux <- aux +1
+    offspring[1] <- first_occurrence
+    cycle_defined_by_parents(p1,p2,aux, first_occurrence, current_occurrence, cycle,offspring)
+      
+  }
+  else{
+    if(current_occurrence != first_occurrence){
+      current_occurrence <- match(current_occurrence, p1)
+      offspring[current_occurrence] <- p1[current_occurrence]
+      cycle <- append(cycle, p1[current_occurrence] , after=length(cycle))
+      current_occurrence <- p2[current_occurrence]
+      
+      aux <- aux +1
+       cycle_defined_by_parents(p1,p2,aux, first_occurrence, current_occurrence, cycle,offspring)
+    }
+    else{
+      
+      
+      return(offspring)
+      aux<-0
+      first_occurrence <- 0
+      current_occurrence <- 0
+      
+    }
+    
+  }
+}
+```
+
+
+```{r}
+cx_crossover <- function(p1, p2){
+  #find cycle
+  p1_length <- length(p1)
+  offspring <- replicate(p1_length, 0)
+  offspring <- cycle_defined_by_parents(p1,p2,0,0,0, c(), offspring) 
+ 
+ for(val in 1:p1_length){
+   if(offspring[val] == 0){
+     offspring[val] = p2[val]
+   }
+   else{
+     
+   }
+ }
+ return(offspring)
+ 
+    
+}
+```
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+p2<- c(5,4,6,9,2,3,7,8,1)
+pc <- cx_crossover(p1,p2)
+pc
+```
+#5
+```{r}
+subtour_crossover <- function(p1,p2){
+    p1_length <- length(p1)
+  p2_length <- length(p2)
+
+    random_n <- sample(1:p1_length -1 , 1)
+
+    
+    random_n2 <- sample(1:p2_length -1 , 1)
+
+    
+    offspring <- replicate(p1_length, 0)
+    offspring2 <- replicate(p1_length, 0)
+    aux <- 0
+    for(val in random_n:p1_length){
+      aux <- aux +1
+      
+      offspring[val] = p1[val]
+    }
+
+    
+     for(index in 1:random_n){
+
+      offspring[index] = p2[index]
+      
+     }
+    
+    for(i in random_n2:p1_length){
+      aux <- aux +1
+      
+      offspring2[i] = p2[i]
+    }
+
+    
+     for(j in 1:random_n2){
+
+      offspring2[j] = p1[j]
+      
+     }
+    print(offspring)
+    print(offspring2)
+
+  
+}
+```
+
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+p2<- c(3,4,5,6,7,9,2,1,8)
+pc <- subtour_crossover(p1,p2)
+```
+
+```{r}
+push <- function(x, values) (assign(as.character(substitute(x)), c(x, values), parent.frame()))
+
+# pop
+pop <- function(x) (assign(as.character(substitute(x)), x[-length(x)], parent.frame()))
+```
+
+#Mutation
+#6
+```{r}
+
+
+
+
+inversion_mutation <- function(p1, p2){
+  p1_length <- length(p1)
+  p2_length <- length(p2)
+  
+  random_sample_left <- sample(1:p1_length,1 )
+  
+  random_sample_right <- sample(random_sample_left: p1_length, 1)
+  
+  offspring <- p1
+  v <- c()
+  for(val in random_sample_left:random_sample_right){
+    push(v, offspring[val])
+  }
+  v<-rev(v)
+  
+ offspring[random_sample_left:random_sample_right] = v
+  return(offspring)
+}
+```
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+p2<- c(3,4,5,6,7,9,2,1,8)
+pc <- inversion_mutation(p1,p2)
+pc
+
+```
+#Insertion mutation 7
+```{r}
+insertion_mutation <- function(p1){
+  p1_length <- length(p1)
+ 
+  
+  random_sample_left <- sample(1:p1_length,1 )
+  print(random_sample_left)
+  random_sample_right <- sample(1: p1_length, 1)
+  print(random_sample_right)
+  offspring <- p1
+  new_value <- offspring[random_sample_left]
+  v <- c()
+  for(val in 1:p1_length){
+    if(val == random_sample_right){
+      push(v,offspring[random_sample_left])
+      push(v, offspring[val])
+      
+    }
+    else{
+      if(offspring[val] == offspring[random_sample_left]){
+        
+      }
+      else{
+        push(v,offspring[val])
+      }
+      
+    }
+  }
+  return(v)
+  
+  
+}
+```
+
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+pc <- insertion_mutation(p1)
+pc
+```
+
+```{r}
+  require(magrittr)
+create.chunks <- function(x, elements.per.chunk){
+    # plain R version
+    # split(x, rep(seq_along(x), each = elements.per.chunk)[seq_along(x)])
+    # magrittr version - because that's what people use now
+    x %>% seq_along %>% rep(., each = elements.per.chunk) %>% extract(seq_along(x)) %>% split(x, .) 
+}
+```
+#8
+```{r}
+displacement_mutation <- function(parent, n){
+  subtour<- sample(parent,n,replace =F, prob=NULL)
+  rmv <- parent [!parent %in% subtour]
+  posrnd <- sample(c(1:length(rmv)), 1, replace = F, prob = NULL )
+  parent <- append(rmv, subtour, after=posrnd)
+  return(parent)
+  
+}
+```
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+pc <- displacement_mutation(p1, 3)
+pc
+
+```
+#9
+```{r}
+exchange_mutation <- function(p1){
+  x1 <- sample(p1, 1)
+  x1_1 <- sample(p1,1)
+  
+  x2 <- sample(p1, 1)
+  x2_2 <- sample(p1, 1)
+  v <- replace(x, c(x1, x1_1), x[c(x2, x2_2)])
+  return(v)
+}
+```
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+pc <- exchange_mutation(p1)
+pc
+```
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+pc <- exchange_mutation(p1)
+pc
+```
+#10
+```{r}
+library(gtools)
+```
+
+```{r}
+
+heuristic_mutation <- function(parent){
+  matrix <- c()
+  genes <- sample(c(1:length(parent)), 3, replace = F, prob = NULL)
+  result <- permutations(3,3,genes)
+  for(i in c(2: dim(result)[1])){
+    valuegens <- c(parent[result[i,1]], parent[result[i,2]], parent[result[i,3]])
+    matrix <- rbind(matrix, replace(parent, genes, valuegens))
+    
+  }
+  return(matrix)
+  
+}
+
+```
+
+```{r}
+p1<- c(1,2,3,4,5,6,7,8,9)
+pc <- heuristic_mutation(p1)
+pc
+```
+

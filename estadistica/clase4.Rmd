@@ -1,0 +1,147 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+dataset<-read.csv("Advertising.csv")
+dataset<-dataset[,c(2:5)]
+dataset
+```
+
+```{r}
+dataset %>%
+  ggplot(aes(x=TV, y=..density..)) + 
+  geom_density(fill="blue", color="cyan", lwd=2) + 
+  theme_bw()
+```
+
+```{r}
+dataset %>%
+  ggplot(aes(x=Sales, y=..density..)) + 
+  geom_density(fill="blue", color="cyan", lwd=1) + 
+  theme_bw()
+```
+
+
+```{r}
+library(corrplot)
+corrplot(cor(dataset), method = "number", type="upper")
+```
+```{r}
+dataset %>%
+  ggplot(aes(x=TV, y=Sales)) + geom_point(col="blue")+theme_classic()
+```
+```{r}
+dataset %>%
+  ggplot(aes(x=Newspaper, y=Sales)) + geom_point(col="blue")+theme_classic()
+```
+
+```{r}
+lm1<-dataset %>%
+  lm(formula = Sales ~ TV)
+lm1
+```
+
+```{r}
+summary(lm1)
+```
+```{r}
+lm2<-dataset %>%
+  lm(formula = Sales ~ Radio)
+lm2
+```
+
+```{r}
+summary(lm2)
+```
+
+```{r}
+lm3<-dataset %>%
+  lm(formula = Sales ~ Newspaper)
+lm3
+```
+
+```{r}
+summary(lm3)
+```
+
+```{r}
+lm4<-dataset %>%
+  lm(formula = Sales ~ TV + Radio)
+lm4
+```
+
+```{r}
+summary(lm4)
+```
+
+```{r}
+lm5<-dataset %>%
+  lm(formula = Sales ~ TV + Newspaper)
+lm5
+```
+
+```{r}
+summary(lm5)
+```
+
+```{r}
+lm6<-dataset %>%
+  lm(formula = Sales ~ Newspaper + Radio)
+lm6
+```
+
+```{r}
+summary(lm6)
+```
+
+```{r}
+lm7<-dataset %>%
+  lm(formula = Sales ~ .)
+lm7
+```
+
+```{r}
+summary(lm7)
+```
+
+#Capacidad de prediccion
+
+```{r}
+library(caret)
+```
+
+```{r}
+indexs <- createDataPartition(dataset$TV, p=0.7, list = FALSE)
+dataTrain<-dataset[indexs, ]
+dataTest<-dataset[-indexs, ]
+dataTrain
+dataTest
+```
+
+```{r}
+lm9<-dataTrain %>%
+  lm(formula = Sales ~ TV + Radio)
+lm9
+```
+
+```{r}
+summary(lm9)
+```
+
+```{r}
+predicciones <- predict(object = lm9, newdata = dataTest)
+predicciones
+```
+
+```{r}
+dataFrameTemp <-data.frame(TV=c(43.56,89.98,12.45),  Radio = c(15.67,34.6,22.45))
+predict(object = lm9, newdata = dataFrameTemp)
+```
+
+```{r}
+rmse <- sqrt(mean((dataTest$Sales - predicciones)^2))
+rmse
+```
+

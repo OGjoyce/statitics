@@ -1,0 +1,262 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+ 
+<p>Problema 1 solucion</p>
+```{r}
+problema1 <- function(set, size, replace, number){
+  if(length(set)>=0 && size >=0 && (replace == FALSE || replace == TRUE)&& number >0 ){
+    return_arr <- c()
+    copy_ <- set
+    index_return_arr <- c()
+      
+      if(replace){
+          if(size <= length(set)){
+            for(i in 0:size){
+              index_return_arr <- append(index_return_arr, copy_[i], after=i)
+            }
+            }
+            else{
+              
+            for(i in 0:size){
+              if(i > length(copy_)){
+                index_return_arr <- append(index_return_arr, 0, after=i)
+              }
+              else{
+                index_return_arr <- append(index_return_arr, copy_[i], after=i)
+                
+              }
+              
+              
+            }
+              
+              
+            }
+         }
+        else{
+           if(size <= length(set)){
+            for(i in 0:size){
+              index_return_arr <- append(index_return_arr, copy_[i], after=i)
+            }
+            }
+            else{
+              
+            for(i in 0:size){
+              
+              if(i > length(copy_)){
+                index_return_arr <- append(index_return_arr, last_index, after=i)
+              }
+              else{
+                index_return_arr <- append(index_return_arr, copy_[i], after=i)
+                last_index <- copy_[i]
+              }
+              
+              
+            }
+              
+              
+            }
+          
+        }
+        for(i in 0:number){
+              return_arr <- append(return_arr, index_return_arr, after=length(index_return_arr))
+            }
+    
+    return(return_arr)
+    
+  }
+  else{
+    return("Error: Parametros invalidos")
+  }
+  
+}
+```
+<p> Problema 1, prueba 1 </p>
+```{r}
+tn <- problema1(c(1,2,3,4), 7, FALSE, 2)
+tn
+```
+
+<p> Problema 1, prueba 2</p>
+```{r}
+tn <- problema1(c(1,2,3,4), 7, FALSE, 2)
+tn
+```
+
+<p> Problema 2 </p>
+
+```{r}
+mezcla1 <- function(vector1, vector2){
+  if(length(vector1) == length(vector2)){
+    stop_variable <- length(vector1)/2
+    return_arr <- c()
+    for(i in 0:stop_variable){
+      return_arr <- append(return_arr, vector1[i], after=i)
+    }
+    stop_var2 <- stop_variable+1
+    for(i in stop_var2 : length(vector1)){
+      return_arr <- append(return_arr, vector2[i], after=i)
+    }
+    
+    return(return_arr)
+  }
+  else{
+    return("Vectores tienen que ser del mismo tamano")
+  }
+}
+```
+
+```{r}
+tn<- mezcla1(c("a","b","c","d","e","f"), c(1,2,3,4,5,6))
+tn
+```
+```{r}
+mezcla2 <- function(vector1, vector2, n){
+  if(length(vector1) == length(vector2) && n<length(vector1) &&n<length(vector2)){
+    stop_variable <- n
+    return_arr <- c()
+    for(i in 0:stop_variable){
+      return_arr <- append(return_arr, vector1[i], after=i)
+    }
+    stop_var2 <- stop_variable+1
+    for(i in stop_var2 : length(vector1)){
+      return_arr <- append(return_arr, vector2[i], after=i)
+    }
+    
+    return(return_arr)
+  }
+  else{
+    return("Vectores tienen que ser del mismo tamano")
+  }
+  
+}
+```
+<p>Prueba 1 n = 2 </p>
+```{r}
+tn<- mezcla2(c("a","b","c","d","e","f"), c(1,2,3,4,5,6), 2)
+tn
+```
+
+<p>Prueba 2 n = 4 </p>
+```{r}
+tn<- mezcla2(c("a","b","c","d","e","f"), c(1,2,3,4,5,6), 4)
+tn
+```
+
+<p>Prueba 3 n = 1 </p>
+```{r}
+tn<- mezcla2(c("a","b","c","d","e","f"), c(1,2,3,4,5,6), 1)
+tn
+```
+<p> Problema 3</p>
+```{r}
+problema3 <- function(vec, prob, set){
+  if(length(vec)>0 && prob <=1 && prob >= 0 && length(set)>0){
+    for(i in 1:length(vec)){
+      random <- runif(1, 0, 1)
+      if(random<prob){
+        print("Probabilidad mayor")
+       
+        set_prob <- sample(set, 1, replace=T) 
+        print("intercambiando posicion... ")
+        print(i)
+        print("nuevo numero...")
+        print(set_prob)
+        vec[i] <- set_prob
+      }
+      else{
+        
+      }
+    }
+    return(vec)
+  }
+  else{
+    return("Parametros invalidos")
+  }
+  
+}
+```
+<p> Prueba problema 3 </p>
+```{r}
+tn <- problema3(c(1,5,3,2), 0.5, c(1,2,3,4,5,6,7,8,9,0))
+tn
+```
+<p> Problema 4 </p>
+```{r}
+problema4 <- function( v1, v2){
+  count <- 0
+  if(length(v1) == length(v2)){
+    for(i in 1:length(v1)){
+      if(v1[i]==v2[i]){
+        count<- count+1
+      }
+    }
+    return(count)
+  }
+  else{
+    return("Arreglos tienen que ser del mismo tamano")
+  }
+  
+}
+```
+<p>Prueba problema 4 </p>
+```{r}
+tn <- problema4(c("m","a","e","s","t","r","o","s"), c("m","a","e","s","t","r","i","a"))
+tn
+```
+<p> Problema 5 </p>
+
+```{r}
+problema5<- function(df_distancia){
+  return_df <- c()
+  for(i in 1:length(df_distancia$x)){
+    current_x <- df_distancia$x[i]
+    current_y <- df_distancia$y[i]
+    for(j in 1:length(df_distancia$x)){
+      next_x <- df_distancia$x[j]
+      next_y <- df_distancia$y[j]
+      d<- sqrt((next_x - current_x)^2 + (next_y - current_y)^2)
+      return_df <- append(return_df, d, length(return_df))
+    }
+    
+  }
+  last_df <- data.frame()
+  
+  for(i in 1:length(df$entidad)){
+    if(i==1){
+      arr <- return_df[i:length(df_distancia$entidad)]
+    }
+    else{
+     
+      from <- (length(df_distancia$entidad)*(i-1)) +1
+      to <- (i)*length(df_distancia$entidad)
+      arr<- return_df[ from : to ]
+      
+      
+    }
+    last_df <- rbind(last_df, i = arr)
+    
+   
+    
+  }
+  return(last_df)
+}
+```
+```{r}
+entidad <- c("A", "B", "C", "D")
+x <- c(1,2,5,10)
+y <- c(2,4,6,8)
+
+df <- data.frame(entidad, x, y)
+
+new_df<-problema5(df)
+new_df
+```
+
+```{r}
+
+```
+

@@ -1,0 +1,78 @@
+
+```{r}
+dataset<-read.csv("data_fut.csv", encoding="UTF-8")
+colnames(dataset)
+dim(dataset)
+```
+```{r}
+
+library(caret)
+validation_index <- createDataPartition(dataset$Overall, p=0.70, list=FALSE)
+#30 esta aqui
+validation <- dataset[-validation_index,]
+#70 esta aqui
+dataset <- dataset[validation_index,]
+
+```
+#Analizando los datos en conjunto 
+```{r}
+library(ggplot2)
+plot(validation$Age, validation$Overall, xlab="Age", ylab="Overall", col="blue", pch=16)
+```
+
+```{r}
+install.packages("tidyverse")
+install.packages("ggpubr")
+```
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+```
+
+```{r}
+theme_set(theme_pubr())
+```
+#Ploteamos Overall en funcion de shortpassing con el set de datos original.
+```{r}
+  ggplot(dataset, aes(x = ShortPassing, y = Overall)) +
+  geom_point() +
+  stat_smooth()
+```
+#creacion del modelo donde Overall estara en funcion de SprintSpeed + Stamina + Crossing + ShortPassing + Strength+ Agility 
+```{r}
+model <- lm(Overall ~ SprintSpeed + Stamina + Crossing + ShortPassing + Strength+ Agility , data = dataset)
+plot(model)
+```
+```{r}
+anova(model)
+model
+```
+#Validacion del modelo
+```{r}
+install.packages("DAAG")
+library(DAAG)
+```
+
+```{r}
+model2 <- lm(Overall ~ SprintSpeed + Stamina + Crossing + ShortPassing + Strength+ Agility , data = validation)
+plot(model2)
+```
+#Creamos el modelo con test_data_C y ploteamos OVerall en funcion de shortpassing
+```{r}
+test_data<- read.csv("test_data_C.csv", encoding="UTF-8")
+test_data
+test_overalls<- predict(model, test_data)
+```
+```{r}
+test_data$Overall <- test_overalls
+ggplot(test_data, aes(x = ShortPassing, y = Overall)) +
+  geom_point() +
+  stat_smooth()
+
+```
+#Output en csv del dataframe Overall queda en el ultimo campo de iziquierda a derecha co la prediccion
+```{r}
+write.csv(test_data, file = "pred_15000552.csv")
+```
+

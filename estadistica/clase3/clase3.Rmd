@@ -1,0 +1,208 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(dplyr)
+library(nycflights13)
+```
+
+```{r}
+
+
+flights
+
+
+dim(flights)
+
+
+colnames(flights)
+
+
+
+table(flights$tailnum)
+
+
+
+table(flights$origin)
+
+
+unique(flights$origin)
+
+
+a<-c(1,2,3,4,5,6,7,8,9)
+a>=4
+
+
+a[a>=4]
+
+
+flights[flights$origin=="JFK",]
+```
+
+
+
+
+```{r}
+flights %>%
+  filter((origin == "JFK") | (origin == "EWR")) %>%
+  filter((dep_time >= 500) & (dep_time <= 700))
+```
+
+
+```{r}
+str(flights)
+```
+
+```{r}
+glimpse(flights)
+```
+```{r}
+flights %>%
+  filter ((hour>= 0 ) & (hour))
+```
+
+```{r}
+flights %>%
+  filter(carrier %in% c("UA", "AA", "B6", "DL")) %>%
+  select(carroer, origin, dest, air_time, distance)
+
+```
+
+```{r}
+summary(flights$year)
+```
+
+```{r}
+flights %>%
+  filter(!is.na(tailnum))
+```
+```{r}
+tarde <- flights %>%
+  filter(arr_delay > 0)
+
+tempreano<-flights%>%
+  filter(arr_delay<0)
+
+entimpo<-flights %>%
+  filter(arr_delay == 0)
+
+
+```
+
+
+```{r}
+pTarde<-nrow(tarde)/nrow(flights)
+pTarde
+
+```
+
+
+```{r}
+pTemprano<-nrow(tempreano)/nrow(flights)
+pTemprano
+```
+
+```{r}
+pEntiempo<-nrow(entimpo)/nrow(flights)
+pEntiempo
+```
+
+
+```{r}
+props<-c(pTemprano, pEntiempo, pTarde)
+etiquetas<-c("Temprano", "En tiempo", "Tarde")
+```
+
+```{r}
+barplot(props,
+        col=rainbow(3),
+main ="Proporcion de retrasos en vuelos",
+ylab ="Proporcion",
+names.arg = etiquetas,
+ylim=c(0, 0.6))
+```
+
+
+
+```{r}
+sub.flights<- flights %>%
+  select(year, month, day, origin, dest, dep_time, arr_time, distance, air_time)
+```
+
+
+```{r}
+
+#Una estrategia de mantenimiento, que aviones han tenido mas tiempo de vuelo
+
+sub.flights %>%
+  summarise(`Tiempo Total` = sum(air_time, na.rm=TRUE))
+
+
+```
+
+```{r}
+sub.flights
+```
+
+
+```{r}
+#Tiempo por avion
+
+tiempoPorAvion<- sub.flights %>%
+  group_by(tailnum) %>%
+  summarise(`Tiempo de Vuelo` = sum(air_time, na.rm=TRUE),
+`Distancia Total` = sum(distance, na.rm = TRUE))%>%
+  arrange(desc(`Tiempo de Vuelo`))%>%
+  top_n(`Tiempo de Vuelo`, 10)
+
+
+```
+
+
+```{r}
+speed.aviones<-flights %>%
+  mutate(distance = distance * 1.605) %>%
+  mutate(air_time = air_time / 60) %>%
+  mutate(speed = round(distance/air_time,2))%>%
+  group_by(tailnum)%>%
+  summarise(mean_speed = mean(speed, na.rm=TRUE))
+
+speed.aviones
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+
+speed.aviones%>%
+  ggplot(aes(mean_speed, y=..density..))+
+  geom_density(col="red", lwd=2, fill="cyan")+
+  ggtitle("Densidad de Velovidad")+
+  xlab("mean_speed")+
+  ylab("Densidad")+
+  theme_minimal()
+
+
+```
+
+```{r}
+
+flights%>%
+  ggplot(aes(x=as.factor(month), y=arr_delay))+
+  geom_boxplot(col="green", size=1)
+
+
+```
+```{r}
+summary(flights$day)
+```
+
+
+
